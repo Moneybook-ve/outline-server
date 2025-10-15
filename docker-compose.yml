@@ -23,6 +23,8 @@ services:
       interval: 10s
       timeout: 30s
       retries: 3
+    ports:
+      - "127.0.0.1:6379:6379"
 
   postgres:
     image: postgres
@@ -36,20 +38,22 @@ services:
       POSTGRES_USER: $POSTGRES_USER
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
       POSTGRES_DB: $POSTGRES_DB
+    ports:
+      - "127.0.0.1:5433:5432"
 
-  # caddy:
-  #   image: caddy:2-alpine
-  #   container_name: outline_caddy
-  #   restart: unless-stopped
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./Caddyfile:/etc/caddy/Caddyfile:ro
-  #     - caddy_data:/data
-  #     - caddy_config:/config
-  #   depends_on:
-  #     - outline
+  caddy:
+    image: caddy:2-alpine
+    container_name: outline_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - outline
 
 volumes:
   storage-data:
