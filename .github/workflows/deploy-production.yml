@@ -47,6 +47,14 @@ jobs:
 
       - name: Copy files to Hetzner server
         run: |
+          sshpass -p "${{ secrets.HETZNER_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} '
+            # Install rsync if not present (openSUSE uses zypper)
+            if ! command -v rsync &> /dev/null; then
+              echo "Installing rsync..."
+              sudo zypper --non-interactive install rsync
+            fi
+          '
+          
           sshpass -p "${{ secrets.HETZNER_PASSWORD }}" rsync -az --delete --exclude='.git' --include='.env' --include='Caddyfile' --include='docker-compose.yml' --include='redis.conf' -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:${{ secrets.HETZNER_PROJECT_PATH }}
 
       - name: Deploy on Hetzner server
