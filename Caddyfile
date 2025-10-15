@@ -1,0 +1,6 @@
+# Outline Caddyfile for Cloudflare subdomain
+# Replace 'outline.yourdomain.com' with your actual Cloudflare subdomain
+
+outline.yourdomain.com {
+  reverse_proxy outline:3000
+}

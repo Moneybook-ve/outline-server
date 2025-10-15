@@ -1,0 +1,58 @@
+name: Deploy Outline to Hetzner (Production)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Create .env file from GitHub environment secrets
+        run: |
+          cat <<EOF > .env
+          URL=${{ secrets.OUTLINE_URL }}
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          UTILS_SECRET=${{ secrets.UTILS_SECRET }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          REDIS_URL=${{ secrets.REDIS_URL }}
+          SMTP_HOST=${{ secrets.SMTP_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM_EMAIL=${{ secrets.SMTP_FROM_EMAIL }}
+          SMTP_SECURE=${{ secrets.SMTP_SECURE }}
+          FORCE_HTTPS=true
+          NODE_ENV=production
+          DEFAULT_LANGUAGE=en_US
+          FILE_STORAGE=local
+          FILE_STORAGE_LOCAL_ROOT_DIR=/var/lib/outline/data
+          FILE_STORAGE_UPLOAD_MAX_SIZE=262144000
+          RATE_LIMITER_ENABLED=true
+          RATE_LIMITER_REQUESTS=1000
+          RATE_LIMITER_DURATION_WINDOW=60
+          ENABLE_UPDATES=true
+          DEBUG=http
+          LOG_LEVEL=info
+          EOF
+
+      - name: Copy files to Hetzner server
+        run: |
+          sshpass -p "${{ secrets.HETZNER_PASSWORD }}" rsync -az --delete --exclude='.git' --include='.env' --include='Caddyfile' --include='docker-compose.yml' --include='redis.conf' -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:${{ secrets.HETZNER_PROJECT_PATH }}
+
+      - name: Deploy on Hetzner server
+        run: |
+          sshpass -p "${{ secrets.HETZNER_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} '
+            cd ${{ secrets.HETZNER_PROJECT_PATH }} &&
+            docker compose pull &&
+            docker compose up -d --build
+          '
