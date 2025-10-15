@@ -8,15 +8,6 @@ param(
     [string]$Environment = "production"
 )
 
-# List of secrets that should NOT be uploaded (server-specific)
-$excludeSecrets = @(
-    "HETZNER_PASSWORD",
-    "HETZNER_USER", 
-    "HETZNER_HOST",
-    "HETZNER_PROJECT_PATH",
-    "HETZNER_API_TOKEN"
-)
-
 if (!(Test-Path $EnvFile)) {
     Write-Error "Environment file '$EnvFile' not found."
     exit 1
@@ -27,15 +18,8 @@ foreach ($line in $lines) {
     if ($line -match "^(\w+)=(.*)$") {
         $name = $matches[1]
         $value = $matches[2]
-        
-        # Skip excluded secrets
-        if ($excludeSecrets -contains $name) {
-            Write-Host "Skipping server-specific secret: $name"
-            continue
-        }
-        
         Write-Host "Uploading secret: $name"
         gh secret set $name --body "$value" --repo $Repo --env $Environment
     }
 }
-Write-Host "All eligible Outline secrets uploaded to environment '$Environment' in repo '$Repo'."
+Write-Host "All Outline secrets uploaded to environment '$Environment' in repo '$Repo'."
