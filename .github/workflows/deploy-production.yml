@@ -30,7 +30,7 @@ jobs:
           SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
           SMTP_FROM_EMAIL=${{ secrets.SMTP_FROM_EMAIL }}
-          SMTP_SECURE=${{ secrets.SMTP_SECURE }}
+          SMTP_SECURE=false
           SMTP_REPLY_TO_EMAIL=${{ secrets.SMTP_REPLY_TO_EMAIL }}
           SMTP_ALLOW_SELF_SIGNED=false
           SMTP_IGNORE_TLS=false
