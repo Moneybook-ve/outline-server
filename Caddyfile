@@ -4,6 +4,16 @@ outline.milagros.me {
   reverse_proxy outline:3000
 }
 
-mail.milagros.me {
+http://mail.milagros.me {
+  # Allow Mailu ACME self-check on plain HTTP before forcing HTTPS
+  @mailu_acme path /.well-known/acme-challenge/*
+  handle @mailu_acme {
+    reverse_proxy mailu-front:80
+  }
+
+  redir https://mail.milagros.me{uri} 308
+}
+
+https://mail.milagros.me {
   reverse_proxy mailu-front:80
 }
