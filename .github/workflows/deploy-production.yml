@@ -18,19 +18,23 @@ jobs:
         run: |
           cat <<EOF > .env
           URL=${{ secrets.OUTLINE_URL }}
-          SECRET_KEY=${{ secrets.SECRET_KEY }}
-          UTILS_SECRET=${{ secrets.UTILS_SECRET }}
+          OUTLINE_SECRET_KEY=${{ secrets.OUTLINE_SECRET_KEY }}
+          OUTLINE_UTILS_SECRET=${{ secrets.OUTLINE_UTILS_SECRET }}
           POSTGRES_USER=${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
           DATABASE_URL=${{ secrets.DATABASE_URL }}
-          REDIS_URL=${{ secrets.REDIS_URL }}
+          OUTLINE_REDIS_URL=${{ secrets.OUTLINE_REDIS_URL }}
           SMTP_HOST=${{ secrets.SMTP_HOST }}
           SMTP_PORT=${{ secrets.SMTP_PORT }}
           SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
           SMTP_FROM_EMAIL=${{ secrets.SMTP_FROM_EMAIL }}
           SMTP_SECURE=${{ secrets.SMTP_SECURE }}
+          SMTP_REPLY_TO_EMAIL=${{ secrets.SMTP_REPLY_TO_EMAIL }}
+          SMTP_ALLOW_SELF_SIGNED=false
+          SMTP_IGNORE_TLS=false
+          SMTP_REQUIRE_TLS=true
           FORCE_HTTPS=true
           NODE_ENV=production
           DEFAULT_LANGUAGE=en_US
@@ -45,6 +49,44 @@ jobs:
           LOG_LEVEL=info
           EOF
 
+      - name: Create mailu.env file from GitHub environment secrets
+        run: |
+          cat <<EOF > mailu.env
+          VERSION=2024.06
+          TZ=UTC
+          DOMAIN=${{ secrets.MAILU_DOMAIN }}
+          HOSTNAMES=${{ secrets.MAILU_HOSTNAMES }}
+          BIND_ADDRESS=0.0.0.0
+          SUBNET=172.19.0.0/16
+          RELAYNETS=0.0.0.0/0
+          SECRET_KEY=${{ secrets.MAILU_SECRET_KEY }}
+          ADMIN=${{ secrets.MAILU_ADMIN_EMAIL }}
+          PASSWORD=${{ secrets.MAILU_ADMIN_PASSWORD }}
+          INITIAL_ACCOUNT=${{ secrets.MAILU_INITIAL_ACCOUNT }}
+          INITIAL_PASSWORD=${{ secrets.MAILU_INITIAL_PASSWORD }}
+          DKIM_SELECTOR=mailu
+          PORTS=25,110,143,465,587,993,995
+          MESSAGE_SIZE_LIMIT=52428800
+          TLS_FLAVOR=letsencrypt
+          WELCOME=false
+          WEBMAIL=none
+          WEB_ADMIN=/admin
+          FRONT_ADDRESS=mailu-front
+          ADMIN_ADDRESS=mailu-admin
+          ANTISPAM_ADDRESS=mailu-antispam
+          IMAP_ADDRESS=mailu-imap
+          IMAP_PORT=143
+          COMPRESSION=none
+          ANTIVIRUS=none
+          ANTISPAM=rspamd
+          FETCHMAIL=none
+          AUTH_RATELIMIT=5/minute
+          RESOLVER=172.19.0.254
+          REDIS_URL=redis://mailu-redis:6379/0
+          POSTMASTER=postmaster
+          LETSENCRYPT_EMAIL=${{ secrets.MAILU_LETSENCRYPT_EMAIL }}
+          EOF
+
       - name: Copy files to Hetzner server
         run: |
           sshpass -p "${{ secrets.HETZNER_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} '
@@ -55,7 +97,7 @@ jobs:
             fi
           '
           
-          sshpass -p "${{ secrets.HETZNER_PASSWORD }}" rsync -az --delete --exclude='.git' --include='.env' --include='Caddyfile' --include='docker-compose.yml' --include='redis.conf' -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:${{ secrets.HETZNER_PROJECT_PATH }}
+          sshpass -p "${{ secrets.HETZNER_PASSWORD }}" rsync -az --delete --exclude='.git' --include='.env' --include='mailu.env' --include='Caddyfile' --include='docker-compose.yml' --include='redis.conf' -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:${{ secrets.HETZNER_PROJECT_PATH }}
 
       - name: Deploy on Hetzner server
         run: |

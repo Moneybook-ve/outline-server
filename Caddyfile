@@ -3,3 +3,7 @@
 outline.milagros.me {
   reverse_proxy outline:3000
 }
+
+mail.milagros.me {
+  reverse_proxy mailu-front:80
+}

@@ -8,7 +8,7 @@ A production-ready deployment of Outline wiki using Docker Compose with PostgreS
 
 ## 📋 Features
 
-- **Email-based authentication** with magic links (SendGrid)
+- **Email-based authentication** with magic links (Mailu 2024.06 - self-hosted)
 - **Automatic HTTPS** with SSL certificates (Caddy)
 - **PostgreSQL database** with persistent storage
 - **Redis caching** for performance
@@ -21,7 +21,7 @@ A production-ready deployment of Outline wiki using Docker Compose with PostgreS
 - Docker and Docker Compose
 - GitHub repository with Actions enabled
 - Hetzner server (or similar hosting)
-- SendGrid account for email delivery
+- **Mailu** (self-hosted email suite - included in docker-compose)
 
 ## 🔧 Local Development
 
@@ -112,17 +112,26 @@ DATABASE_URL=postgres://outline_user:password@postgres:5432/outline?sslmode=disa
 # Redis
 REDIS_URL=redis://redis:6379
 
-# Email (SendGrid)
-SMTP_HOST=smtp.sendgrid.net
+# Email (Mailu - self-hosted)
+SMTP_HOST=mailu-smtp
 SMTP_PORT=587
-SMTP_USERNAME=apikey
-SMTP_PASSWORD=your-sendgrid-api-key
+SMTP_USERNAME=your-outline-smtp-username
+SMTP_PASSWORD=your-outline-smtp-password
 SMTP_FROM_EMAIL=admin@milagros.me
 SMTP_SECURE=false
+SMTP_IGNORE_TLS=true
+SMTP_ALLOW_SELF_SIGNED=true
 
 # HTTPS
 FORCE_HTTPS=true
 ```
+
+### Mailu (`mailu.env`)
+
+- Mailu containers are pinned to `ghcr.io/mailu/*:2024.06`.
+- `PORTS=25,465,587,993,995,110,143` must remain in sync with the exposed ports in `docker-compose.yml`.
+- `TLS_FLAVOR=cert` expects `cert.pem` and `key.pem` inside the `mailu_cert` volume (you can reuse the Caddy certificate or supply your own).
+- Update `INITIAL_PASSWORD`, `SECRET_KEY`, and any other placeholder secrets before first boot.
 
 ### File Structure
 
@@ -138,24 +147,29 @@ outline-server/
 └── upload-outline-secrets.ps1     # Secret upload script
 ```
 
+### Reverse Proxy Layout
+
+- Caddy terminates HTTPS for both Outline (`outline.milagros.me`) and the Mailu admin (`mail.milagros.me`).
+- The `mailu-front` container exposes mail-specific ports directly (25/465/587/993/995) while HTTP/S traffic is routed internally through Caddy.
+- Ensure DNS records for both hostnames point to the same server so certificate issuance succeeds.
+
+### Mail Certificates
+
+- Copy the certificate and key you want Mailu to use into the `mailu_cert` volume path (`cert.pem` and `key.pem`).
+- Restart the Mailu stack after replacing the certificate so the new keypair is detected.
+
 ## 🔍 Troubleshooting
 
 ### Common Issues
 
-**Email not sending:**
-
-- Verify SendGrid API key and SMTP settings
-- Check `SMTP_SECURE=false` for STARTTLS
+- **Email not sending:** Ensure Mailu services are running (`docker compose ps | Select-String mailu`), verify the `outline@milagros.me` mailbox in the Mailu admin UI, confirm the `.env` SMTP credentials match `mailu.env`, and review `docker compose logs mailu-smtp`.
 
 **Database connection failed:**
 
 - Ensure PostgreSQL container is healthy
 - Check `DATABASE_URL` format
 
-**HTTPS not working:**
-
-- Verify domain DNS points to server
-- Check Caddy logs: `docker compose logs caddy`
+- **HTTPS not working:** Verify DNS records, confirm Caddy obtained certificates, and check `docker compose logs caddy`.
 
 ### Logs
 
@@ -170,6 +184,8 @@ docker compose logs outline
 docker compose logs postgres
 docker compose logs redis
 docker compose logs caddy
+docker compose logs mailu-front
+docker compose logs mailu-smtp
 ```
 
 ### Database

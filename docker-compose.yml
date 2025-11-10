@@ -1,7 +1,11 @@
 services:
   outline:
-    image: docker.getoutline.com/outlinewiki/outline:latest
+    image: docker.getoutline.com/outlinewiki/outline:0.87.4
     env_file: ./.env
+    environment:
+      SECRET_KEY: ${OUTLINE_SECRET_KEY}
+      UTILS_SECRET: ${OUTLINE_UTILS_SECRET}
+      REDIS_URL: ${OUTLINE_REDIS_URL}
     ports:
       - "3000:3000"
     volumes:
@@ -27,7 +31,7 @@ services:
       - "127.0.0.1:6379:6379"
 
   postgres:
-    image: postgres
+    image: postgres:17-alpine
     env_file: ./.env
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DB"]
@@ -40,6 +44,8 @@ services:
       POSTGRES_DB: $POSTGRES_DB
     ports:
       - "127.0.0.1:5433:5432"
+    volumes:
+      - database-data:/var/lib/postgresql/data
 
   caddy:
     image: caddy:2-alpine
@@ -55,8 +61,126 @@ services:
     depends_on:
       - outline
 
+  # Mailu Email Suite
+  mailu-front:
+    image: ghcr.io/mailu/nginx:2024.06
+    container_name: mailu-front
+    restart: always
+    env_file: mailu.env
+    dns:
+      - 172.19.0.254
+    links:
+      - mailu-admin
+      - mailu-smtp
+      - mailu-imap
+      - mailu-antispam
+    depends_on:
+      - mailu-resolver
+      - mailu-admin
+      - mailu-smtp
+      - mailu-imap
+    ports:
+      - "25:25"
+      - "110:110"
+      - "143:143"
+      - "465:465"
+      - "587:587"
+      - "993:993"
+      - "995:995"
+    volumes:
+      - mailu_cert:/certs
+
+  mailu-resolver:
+    image: ghcr.io/mailu/unbound:2024.06
+    container_name: mailu-resolver
+    restart: always
+    env_file: mailu.env
+    networks:
+      default:
+        ipv4_address: 172.19.0.254
+
+  mailu-admin:
+    image: ghcr.io/mailu/admin:2024.06
+    container_name: mailu-admin
+    restart: always
+    env_file: mailu.env
+    dns:
+      - 172.19.0.254
+    links:
+      - mailu-redis
+    volumes:
+      - mailu_data:/data
+      - mailu_dkim:/dkim
+    depends_on:
+      - mailu-redis
+
+  mailu-smtp:
+    image: ghcr.io/mailu/postfix:2024.06
+    container_name: mailu-smtp
+    restart: always
+    env_file: mailu.env
+    dns:
+      - 172.19.0.254
+    links:
+      - mailu-admin
+      - mailu-redis
+    volumes:
+      - mailu_mail:/var/mail
+    depends_on:
+      - mailu-redis
+
+  mailu-imap:
+    image: ghcr.io/mailu/dovecot:2024.06
+    container_name: mailu-imap
+    restart: always
+    env_file: mailu.env
+    dns:
+      - 172.19.0.254
+    links:
+      - mailu-admin
+      - mailu-redis
+    volumes:
+      - mailu_mail:/var/mail
+    depends_on:
+      - mailu-redis
+
+  mailu-redis:
+    image: redis:7-alpine
+    container_name: mailu-redis
+    restart: always
+    env_file: mailu.env
+    dns:
+      - 172.19.0.254
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - mailu_redis:/data
+
+  mailu-antispam:
+    image: ghcr.io/mailu/rspamd:2024.06
+    container_name: mailu-antispam
+    restart: always
+    env_file: mailu.env
+    dns:
+      - 172.19.0.254
+    links:
+      - mailu-admin
+    volumes:
+      - mailu_filter:/var/lib/rspamd
+
 volumes:
   storage-data:
   database-data:
   caddy_data:
   caddy_config:
+  mailu_cert:
+  mailu_data:
+  mailu_dkim:
+  mailu_mail:
+  mailu_filter:
+  mailu_redis:
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16
