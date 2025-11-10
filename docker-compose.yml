@@ -1,6 +1,6 @@
 services:
   outline:
-    image: docker.getoutline.com/outlinewiki/outline:0.87.4
+    image: docker.getoutline.com/outlinewiki/outline
     env_file: ./.env
     environment:
       SECRET_KEY: ${OUTLINE_SECRET_KEY}
