@@ -54,16 +54,16 @@ jobs:
           cat <<EOF > mailu.env
           VERSION=2024.06
           TZ=UTC
-          DOMAIN=${{ secrets.MAILU_DOMAIN }}
-          HOSTNAMES=${{ secrets.MAILU_HOSTNAMES }}
+          DOMAIN=${{ secrets.DOMAIN }}
+          HOSTNAMES=${{ secrets.HOSTNAMES }}
           BIND_ADDRESS=0.0.0.0
           SUBNET=172.19.0.0/16
           RELAYNETS=0.0.0.0/0
-          SECRET_KEY=${{ secrets.MAILU_SECRET_KEY }}
-          ADMIN=${{ secrets.MAILU_ADMIN_EMAIL }}
-          PASSWORD=${{ secrets.MAILU_ADMIN_PASSWORD }}
-          INITIAL_ACCOUNT=${{ secrets.MAILU_INITIAL_ACCOUNT }}
-          INITIAL_PASSWORD=${{ secrets.MAILU_INITIAL_PASSWORD }}
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          ADMIN=${{ secrets.ADMIN }}
+          PASSWORD=${{ secrets.PASSWORD }}
+          INITIAL_ACCOUNT=${{ secrets.INITIAL_ACCOUNT }}
+          INITIAL_PASSWORD=${{ secrets.INITIAL_PASSWORD }}
           DKIM_SELECTOR=mailu
           PORTS=25,110,143,465,587,993,995
           MESSAGE_SIZE_LIMIT=52428800
@@ -84,7 +84,7 @@ jobs:
           RESOLVER=172.19.0.254
           REDIS_URL=redis://mailu-redis:6379/0
           POSTMASTER=postmaster
-          LETSENCRYPT_EMAIL=${{ secrets.MAILU_LETSENCRYPT_EMAIL }}
+          LETSENCRYPT_EMAIL=${{ secrets.LETSENCRYPT_EMAIL }}
           EOF
 
       - name: Copy files to Hetzner server
