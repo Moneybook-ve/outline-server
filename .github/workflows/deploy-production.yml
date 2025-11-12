@@ -70,8 +70,6 @@ jobs:
           PORTS=${{ secrets.PORTS }}
           MESSAGE_SIZE_LIMIT=${{ secrets.MESSAGE_SIZE_LIMIT }}
           TLS_FLAVOR=${{ secrets.TLS_FLAVOR }}
-          TLS_CERT_FILENAME=${{ secrets.TLS_CERT_FILENAME }}
-          TLS_KEYPAIR_FILENAME=${{ secrets.TLS_KEYPAIR_FILENAME }}
           WELCOME=false
           WEBMAIL=none
           WEB_ADMIN=/admin
