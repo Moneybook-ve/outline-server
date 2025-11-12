@@ -177,6 +177,7 @@ volumes:
   mailu_mail:
   mailu_filter:
   mailu_redis:
+  mailu_cert:
 
 networks:
   default:
