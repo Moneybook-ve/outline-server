@@ -64,10 +64,12 @@ jobs:
           PASSWORD=${{ secrets.PASSWORD }}
           INITIAL_ACCOUNT=${{ secrets.INITIAL_ACCOUNT }}
           INITIAL_PASSWORD=${{ secrets.INITIAL_PASSWORD }}
-          DKIM_SELECTOR=mailu
-          PORTS=25,110,143,465,587,993,995
-          MESSAGE_SIZE_LIMIT=52428800
-          TLS_FLAVOR=letsencrypt
+          DKIM_SELECTOR=${{ secrets.DKIM_SELECTOR }}
+          PORTS=${{ secrets.PORTS }}
+          MESSAGE_SIZE_LIMIT=${{ secrets.MESSAGE_SIZE_LIMIT }}
+          TLS_FLAVOR=${{ secrets.TLS_FLAVOR }}
+          TLS_CERT_FILENAME=${{ secrets.TLS_CERT_FILENAME }}
+          TLS_KEYPAIR_FILENAME=${{ secrets.TLS_KEYPAIR_FILENAME }}
           WELCOME=false
           WEBMAIL=none
           WEB_ADMIN=/admin
