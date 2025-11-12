@@ -62,8 +62,10 @@ jobs:
           SECRET_KEY=${{ secrets.SECRET_KEY }}
           ADMIN=${{ secrets.ADMIN }}
           PASSWORD=${{ secrets.PASSWORD }}
-          INITIAL_ACCOUNT=${{ secrets.INITIAL_ACCOUNT }}
-          INITIAL_PASSWORD=${{ secrets.INITIAL_PASSWORD }}
+          INITIAL_ADMIN_ACCOUNT=${{ secrets.INITIAL_ADMIN_ACCOUNT }}
+          INITIAL_ADMIN_DOMAIN=${{ secrets.INITIAL_ADMIN_DOMAIN }}
+          INITIAL_ADMIN_PW=${{ secrets.INITIAL_ADMIN_PW }}
+          INITIAL_ADMIN_MODE=${{ secrets.INITIAL_ADMIN_MODE }}
           DKIM_SELECTOR=${{ secrets.DKIM_SELECTOR }}
           PORTS=${{ secrets.PORTS }}
           MESSAGE_SIZE_LIMIT=${{ secrets.MESSAGE_SIZE_LIMIT }}
@@ -73,6 +75,7 @@ jobs:
           WELCOME=false
           WEBMAIL=none
           WEB_ADMIN=/admin
+          WEBROOT_REDIRECT=${{ secrets.WEBROOT_REDIRECT }}
           FRONT_ADDRESS=mailu-front
           ADMIN_ADDRESS=mailu-admin
           ANTISPAM_ADDRESS=mailu-antispam

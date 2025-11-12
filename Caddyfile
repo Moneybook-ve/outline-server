@@ -15,5 +15,13 @@ http://mail.milagros.me {
 }
 
 https://mail.milagros.me {
-  reverse_proxy mailu-front:80
+  @acme {
+    path /.well-known/acme-challenge/*
+  }
+  handle @acme {
+    reverse_proxy mailu-front:80
+  }
+  handle {
+    reverse_proxy mailu-front:80
+  }
 }
