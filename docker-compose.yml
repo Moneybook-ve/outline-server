@@ -88,7 +88,7 @@ services:
       - "993:993"
       - "995:995"
     volumes:
-      - ./mailu/certs:/certs
+      - mailu_cert:/certs
 
   mailu-resolver:
     image: ghcr.io/mailu/unbound:2024.06
@@ -172,8 +172,6 @@ volumes:
   database-data:
   caddy_data:
   caddy_config:
-  # mailu_cert is replaced by a host-mounted directory ./mailu/certs to persist
-  # certificates across deploys and avoid accidental removal with `docker compose down -v`.
   mailu_data:
   mailu_dkim:
   mailu_mail:
