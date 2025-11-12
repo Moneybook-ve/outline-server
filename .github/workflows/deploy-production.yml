@@ -79,6 +79,8 @@ jobs:
           ANTISPAM_ADDRESS=mailu-antispam
           IMAP_ADDRESS=mailu-imap
           IMAP_PORT=143
+          SMTP_ADDRESS=${{ secrets.SMTP_ADDRESS }}
+          RELAYHOST=${{ secrets.RELAYHOST }}
           COMPRESSION=none
           ANTIVIRUS=none
           ANTISPAM=rspamd
