@@ -52,13 +52,14 @@ services:
     container_name: outline_caddy
     restart: unless-stopped
     ports:
+      # Caddy binds to the public ports 80 and 443
       - "80:80"
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-      - certs_shared:/certs_shared # ADDED: Map shared volume for cert copying
+      - certs_shared:/certs_shared
     depends_on:
       - outline
 
@@ -68,6 +69,11 @@ services:
     container_name: mailu-front
     restart: always
     env_file: mailu.env
+    
+    # FIX: Expose internal port 80 for Caddy to proxy to, but do not bind it publicly
+    expose: 
+      - "80"
+      
     dns:
       - 172.19.0.254
     links:
@@ -81,15 +87,14 @@ services:
       - mailu-smtp
       - mailu-imap
     ports:
-      - "25:25"
-      - "465:465"
-      - "587:587"
-      - "993:993"
-      - "995:995"
+      # Mailu's email ports must remain public
+      - "25:25"   # SMTP
+      - "465:465" # SMTPS (Submission)
+      - "587:587" # Submission (STARTTLS)
+      - "993:993" # IMAPS
+      - "995:995" # POP3S
     volumes:
-      # CRITICAL CHANGE: Use the shared volume as the /certs path for Mailu
       - certs_shared:/certs 
-      # Your original Mailu cert volume (kept for config purposes)
       - mailu_cert:/certs_mailu_backup
       
   mailu-resolver:
@@ -180,7 +185,7 @@ volumes:
   mailu_filter:
   mailu_redis:
   mailu_cert:
-  certs_shared: # NEW: This is the shared volume for moving Caddy's certificates to Mailu
+  certs_shared: 
 
 networks:
   default:
