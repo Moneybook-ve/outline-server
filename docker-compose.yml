@@ -81,15 +81,17 @@ services:
       - mailu-imap
     ports:
       - "25:25"
-      #- "110:110"
-      #- "143:143"
       - "465:465"
       - "587:587"
       - "993:993"
       - "995:995"
     volumes:
-      - mailu_cert:/certs
-
+      # CRITICAL CHANGE: Map Caddy's data volume to Mailu's /certs volume
+      # This allows Mailu to use the certificates Caddy generates.
+      - caddy_data:/certs:ro
+      # Your existing Mailu cert volume (kept for config purposes)
+      - mailu_cert:/certs_mailu_backup
+      
   mailu-resolver:
     image: ghcr.io/mailu/unbound:2024.06
     container_name: mailu-resolver
@@ -177,7 +179,7 @@ volumes:
   mailu_mail:
   mailu_filter:
   mailu_redis:
-  mailu_cert:
+  mailu_cert: # Kept for potential future use
 
 networks:
   default:
