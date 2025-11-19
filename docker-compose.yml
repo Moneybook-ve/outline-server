@@ -58,6 +58,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+      - certs_shared:/certs_shared # ADDED: Map shared volume for cert copying
     depends_on:
       - outline
 
@@ -86,10 +87,9 @@ services:
       - "993:993"
       - "995:995"
     volumes:
-      # CRITICAL CHANGE: Map Caddy's data volume to Mailu's /certs volume
-      # This allows Mailu to use the certificates Caddy generates.
-      - caddy_data:/certs:ro
-      # Your existing Mailu cert volume (kept for config purposes)
+      # CRITICAL CHANGE: Use the shared volume as the /certs path for Mailu
+      - certs_shared:/certs 
+      # Your original Mailu cert volume (kept for config purposes)
       - mailu_cert:/certs_mailu_backup
       
   mailu-resolver:
@@ -179,7 +179,8 @@ volumes:
   mailu_mail:
   mailu_filter:
   mailu_redis:
-  mailu_cert: # Kept for potential future use
+  mailu_cert:
+  certs_shared: # NEW: This is the shared volume for moving Caddy's certificates to Mailu
 
 networks:
   default:
